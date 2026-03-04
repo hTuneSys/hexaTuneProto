@@ -1,0 +1,256 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - "release/v*"
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: "-Dwarnings"
+
+jobs:
+  # ── Gate: run full CI first ──────────────────────────────────────────
+  ci-gate:
+    name: CI Gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: thumbv6m-none-eabi
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Rustfmt
+        run: cargo fmt --all -- --check
+
+      - name: Build
+        run: cargo build --workspace
+
+      - name: Test
+        run: cargo test --workspace
+
+      - name: no_std check (proto)
+        run: cargo check -p hexa-tune-proto --target thumbv6m-none-eabi --no-default-features
+
+      - name: no_std check (embedded)
+        run: cargo check -p hexa-tune-proto-embedded --target thumbv6m-none-eabi --no-default-features
+
+  # ── Extract version from branch name ─────────────────────────────────
+  version:
+    name: Extract Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.extract.outputs.version }}
+      version_bare: ${{ steps.extract.outputs.version_bare }}
+    steps:
+      - name: Extract version from branch
+        id: extract
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          VERSION="${BRANCH#release/}"
+          VERSION_BARE="${VERSION#v}"
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "version_bare=${VERSION_BARE}" >> "$GITHUB_OUTPUT"
+          echo "Branch: ${BRANCH}"
+          echo "Version: ${VERSION}"
+          echo "Version (bare): ${VERSION_BARE}"
+
+  # ── Build Android .so files ──────────────────────────────────────────
+  build-android:
+    name: Build Android
+    needs: [ci-gate, version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk
+
+      - name: Setup Android NDK
+        uses: android-actions/setup-android@v3
+
+      - name: Build Android targets
+        run: |
+          for target in aarch64-linux-android armv7-linux-androideabi x86_64-linux-android; do
+            echo "Building for $target..."
+            cargo ndk --target "$target" build -p hexa-tune-proto-ffi --release
+          done
+
+      - name: Collect jniLibs
+        run: |
+          mkdir -p artifacts/jniLibs/arm64-v8a
+          mkdir -p artifacts/jniLibs/armeabi-v7a
+          mkdir -p artifacts/jniLibs/x86_64
+          cp target/aarch64-linux-android/release/libhexa_tune_proto_ffi.so artifacts/jniLibs/arm64-v8a/
+          cp target/armv7-linux-androideabi/release/libhexa_tune_proto_ffi.so artifacts/jniLibs/armeabi-v7a/
+          cp target/x86_64-linux-android/release/libhexa_tune_proto_ffi.so artifacts/jniLibs/x86_64/
+
+      - name: Upload Android artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-libs
+          path: artifacts/jniLibs/
+
+  # ── Build iOS .a files ───────────────────────────────────────────────
+  build-ios:
+    name: Build iOS
+    needs: [ci-gate, version]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build iOS targets
+        run: |
+          cargo build -p hexa-tune-proto-ffi --release --target aarch64-apple-ios
+          cargo build -p hexa-tune-proto-ffi --release --target aarch64-apple-ios-sim
+
+      - name: Create XCFramework
+        run: |
+          xcodebuild -create-xcframework \
+            -library target/aarch64-apple-ios/release/libhexa_tune_proto_ffi.a \
+            -headers crates/hexa-tune-proto-ffi/include/ \
+            -library target/aarch64-apple-ios-sim/release/libhexa_tune_proto_ffi.a \
+            -headers crates/hexa-tune-proto-ffi/include/ \
+            -output artifacts/HexaTuneProto.xcframework
+
+      - name: Upload iOS artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-framework
+          path: artifacts/HexaTuneProto.xcframework/
+
+  # ── Build Linux host .so ─────────────────────────────────────────────
+  build-linux:
+    name: Build Linux
+    needs: [ci-gate, version]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build release
+        run: cargo build -p hexa-tune-proto-ffi --release
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p artifacts
+          cp target/release/libhexa_tune_proto_ffi.so artifacts/
+          cp target/release/libhexa_tune_proto_ffi.a artifacts/
+          cp crates/hexa-tune-proto-ffi/include/hexa_tune_proto.h artifacts/
+
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-libs
+          path: artifacts/
+
+  # ── Publish & Release ────────────────────────────────────────────────
+  release:
+    name: Publish & Release
+    needs: [version, build-android, build-ios, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist/
+
+      - name: Package artifacts
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+
+          # Android
+          cd dist/android-libs
+          tar czf "../hexa-tune-proto-ffi-${VERSION}-android.tar.gz" .
+          cd ../..
+
+          # iOS
+          cd dist/ios-framework
+          tar czf "../hexa-tune-proto-ffi-${VERSION}-ios.tar.gz" .
+          cd ../..
+
+          # Linux
+          cd dist/linux-libs
+          tar czf "../hexa-tune-proto-ffi-${VERSION}-linux-x86_64.tar.gz" .
+          cd ../..
+
+          # Dart bindings
+          tar czf "dist/hexa-tune-proto-ffi-${VERSION}-dart-bindings.tar.gz" \
+            -C crates/hexa-tune-proto-ffi/bindings/dart .
+
+          ls -lh dist/*.tar.gz
+
+      - name: Generate changelog
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          bash scripts/changelog.sh "$VERSION" > RELEASE_NOTES.md
+          cat RELEASE_NOTES.md
+
+      - name: Create git tag
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${VERSION}" -m "Release ${VERSION}"
+          git push origin "${VERSION}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.version.outputs.version }}
+          name: ${{ needs.version.outputs.version }}
+          body_path: RELEASE_NOTES.md
+          files: dist/*.tar.gz
+          draft: false
+          prerelease: false
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          # Publish in dependency order with retry
+          echo "Publishing hexa-tune-proto..."
+          cargo publish -p hexa-tune-proto --allow-dirty
+
+          echo "Waiting for crates.io index update..."
+          sleep 30
+
+          echo "Publishing hexa-tune-proto-embedded..."
+          cargo publish -p hexa-tune-proto-embedded --allow-dirty
+
+          echo "Waiting for crates.io index update..."
+          sleep 30
+
+          echo "Publishing hexa-tune-proto-ffi..."
+          cargo publish -p hexa-tune-proto-ffi --allow-dirty

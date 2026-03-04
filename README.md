@@ -86,6 +86,20 @@ All `just` commands delegate to shell scripts in `scripts/`:
 | `just clean` | Remove build artifacts |
 | `just build-android [debug\|release]` | Cross-compile FFI for Android |
 | `just build-ios [debug\|release]` | Cross-compile FFI for iOS |
+| `just changelog [version]` | Generate changelog from commits |
+
+## CI/CD
+
+| Workflow | Trigger | Description |
+|----------|---------|-------------|
+| [CI](.github/workflows/ci.yml) | Push to any branch, PRs | Lint, build, test, no_std check |
+| [Release](.github/workflows/release.yml) | Push to `release/v*` | Build artifacts, GitHub Release, cargo publish |
+
+**Release flow:** `develop` → `release/vX.Y.Z` branch → push triggers CD →
+tag created → GitHub Release with Android/iOS/Linux binaries + changelog →
+crates.io publish.
+
+**Required secret:** `CARGO_REGISTRY_TOKEN` for crates.io publishing.
 
 ## Documentation
 

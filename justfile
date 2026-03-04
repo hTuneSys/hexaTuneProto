@@ -40,3 +40,7 @@ build-android profile="release":
 # Build FFI for iOS (debug|release)
 build-ios profile="release":
     bash scripts/build-ios.sh {{profile}}
+
+# Generate changelog from conventional commits
+changelog version="Unreleased":
+    bash scripts/changelog.sh {{version}}
