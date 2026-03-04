@@ -15,5 +15,5 @@ defmt = ["dep:defmt", "hexa-tune-proto/defmt"]
 
 [dependencies]
 hexa-tune-proto = { path = "../hexa-tune-proto", default-features = false }
-heapless = "0.8"
-defmt = { version = "0.3", optional = true }
+heapless = "0.9"
+defmt = { version = "1.0", optional = true }

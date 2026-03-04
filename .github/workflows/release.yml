@@ -178,8 +178,26 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: dtolnay/rust-toolchain@stable
+
+      - name: Update Cargo.toml version
+        run: |
+          VERSION_BARE="${{ needs.version.outputs.version_bare }}"
+          echo "Updating workspace version to ${VERSION_BARE}..."
+          sed -i "s/^version = \".*\"/version = \"${VERSION_BARE}\"/" Cargo.toml
+          echo "Workspace version set to:"
+          grep '^version' Cargo.toml
+
+      - name: Commit version bump
+        run: |
+          VERSION="${{ needs.version.outputs.version }}"
+          VERSION_BARE="${{ needs.version.outputs.version_bare }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Cargo.toml Cargo.lock
+          git diff --cached --quiet || git commit -m "release: bump version to ${VERSION_BARE}"
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -217,13 +235,13 @@ jobs:
           bash scripts/changelog.sh "$VERSION" > RELEASE_NOTES.md
           cat RELEASE_NOTES.md
 
-      - name: Create git tag
+      - name: Create git tag and push
         run: |
           VERSION="${{ needs.version.outputs.version }}"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag -a "${VERSION}" -m "Release ${VERSION}"
-          git push origin "${VERSION}"
+          git push origin HEAD "${VERSION}"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -239,7 +257,10 @@ jobs:
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
-          # Publish in dependency order with retry
+          # Update lock file after version bump
+          cargo update --workspace
+
+          # Publish in dependency order
           echo "Publishing hexa-tune-proto..."
           cargo publish -p hexa-tune-proto --allow-dirty
 
