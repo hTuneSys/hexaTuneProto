@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-WORKSPACE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+WORKSPACE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$WORKSPACE_ROOT"
 
 echo ""
