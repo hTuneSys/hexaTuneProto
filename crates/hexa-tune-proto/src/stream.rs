@@ -170,7 +170,7 @@ mod tests {
     fn make_sysex_packets(payload: &[u8]) -> (Vec<[u8; 4]>, usize) {
         let mut sysex_buf = alloc::vec![0u8; payload.len() + 2];
         let sysex_len = sysex::frame(payload, &mut sysex_buf).unwrap();
-        let mut packets = alloc::vec![[0u8; 4]; (sysex_len + 2) / 3 + 1];
+        let mut packets = alloc::vec![[0u8; 4]; sysex_len.div_ceil(3) + 1];
         let np = usb_midi::packetize(&sysex_buf[..sysex_len], &mut packets).unwrap();
         (packets, np)
     }
@@ -183,8 +183,8 @@ mod tests {
         let mut buf = [0u8; 64];
         let mut dec = StreamDecoder::new(&mut buf);
 
-        for i in 0..np - 1 {
-            assert_eq!(dec.push_packet(packets[i]).unwrap(), None);
+        for packet in packets.iter().take(np - 1) {
+            assert_eq!(dec.push_packet(*packet).unwrap(), None);
         }
         let len = dec.push_packet(packets[np - 1]).unwrap().unwrap();
         assert_eq!(&buf[..len], payload);
@@ -199,8 +199,8 @@ mod tests {
         let mut dec = StreamDecoder::new(&mut buf);
 
         let mut result = None;
-        for i in 0..np {
-            if let Some(len) = dec.push_packet(packets[i]).unwrap() {
+        for packet in packets.iter().take(np) {
+            if let Some(len) = dec.push_packet(*packet).unwrap() {
                 result = Some(len);
             }
         }
@@ -221,8 +221,8 @@ mod tests {
         // First message
         {
             let mut dec = StreamDecoder::new(&mut buf);
-            for i in 0..np1 - 1 {
-                dec.push_packet(p1[i]).unwrap();
+            for packet in p1.iter().take(np1 - 1) {
+                dec.push_packet(*packet).unwrap();
             }
             let len = dec.push_packet(p1[np1 - 1]).unwrap().unwrap();
             assert_eq!(len, payload1.len());
@@ -232,8 +232,8 @@ mod tests {
         // Second message (reusing same buffer)
         {
             let mut dec = StreamDecoder::new(&mut buf);
-            for i in 0..np2 - 1 {
-                dec.push_packet(p2[i]).unwrap();
+            for packet in p2.iter().take(np2 - 1) {
+                dec.push_packet(*packet).unwrap();
             }
             let len = dec.push_packet(p2[np2 - 1]).unwrap().unwrap();
             assert_eq!(len, payload2.len());
@@ -251,12 +251,9 @@ mod tests {
         let mut dec = StreamDecoder::new(&mut buf);
 
         let mut overflow_seen = false;
-        for i in 0..np {
-            match dec.push_packet(packets[i]) {
-                Err(ProtoError::Overflow) => {
-                    overflow_seen = true;
-                }
-                _ => {}
+        for packet in packets.iter().take(np) {
+            if let Err(ProtoError::Overflow) = dec.push_packet(*packet) {
+                overflow_seen = true;
             }
         }
         assert!(overflow_seen);
@@ -276,15 +273,15 @@ mod tests {
         let mut dec = StreamDecoder::new(&mut buf);
 
         // First message overflows
-        for i in 0..np_long {
-            let _ = dec.push_packet(p_long[i]);
+        for packet in p_long.iter().take(np_long) {
+            let _ = dec.push_packet(*packet);
         }
         assert_eq!(dec.state(), StreamState::Idle);
 
         // Second message succeeds
         let mut result = None;
-        for i in 0..np_short {
-            if let Some(len) = dec.push_packet(p_short[i]).unwrap() {
+        for packet in p_short.iter().take(np_short) {
+            if let Some(len) = dec.push_packet(*packet).unwrap() {
                 result = Some(len);
             }
         }
