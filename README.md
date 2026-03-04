@@ -87,12 +87,29 @@ All `just` commands delegate to shell scripts in `scripts/`:
 
 ## Documentation
 
+### Technical
+
 | Document | Description |
 |----------|-------------|
 | [Architecture](docs/ARCHITECTURE.md) | Crate hierarchy, design decisions, data flow |
 | [Protocol](docs/PROTOCOL.md) | AT command format, SysEx framing, USB MIDI packets |
 | [FFI Guide](docs/FFI.md) | C API reference, Dart integration examples |
 | [Embedded Guide](docs/EMBEDDED.md) | Firmware integration, StreamDecoder usage, memory budget |
+
+### Process
+
+| Document | Description |
+|----------|-------------|
+| [Branch Strategy](docs/BRANCH_STRATEGY.md) | Branching model, merge rules, protection |
+| [Commit Strategy](docs/COMMIT_STRATEGY.md) | Conventional commit format and types |
+| [PR Strategy](docs/PR_STRATEGY.md) | Pull request conventions and workflow |
+| [Labelling Strategy](docs/LABELLING_STRATEGY.md) | Issue and PR label taxonomy |
+| [Contributing](docs/CONTRIBUTING.md) | How to contribute to the project |
+| [Code of Conduct](docs/CODE_OF_CONDUCT.md) | Community behavior standards |
+| [Security](docs/SECURITY.md) | Vulnerability reporting policy |
+| [Support](docs/SUPPORT.md) | How to get help |
+| [Community](docs/COMMUNITY.md) | Community guidelines |
+| [Contact](docs/CONTACT.md) | Communication channels |
 
 ## Features
 
