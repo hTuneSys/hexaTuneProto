@@ -1,0 +1,23 @@
+[parse]
+parse_deps = true
+
+[export]
+include = [
+    "HtpSlice",
+    "HtpAtParseResult",
+]
+
+prefix = ""
+
+[export.rename]
+
+[fn]
+prefix = ""
+
+[enum]
+rename_variants = "ScreamingSnakeCase"
+
+[defines]
+
+[layout]
+aligned_n = "ALIGNED"

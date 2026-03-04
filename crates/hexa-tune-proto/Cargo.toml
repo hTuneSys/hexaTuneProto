@@ -1,0 +1,22 @@
+[package]
+name = "hexa-tune-proto"
+description = "AT-over-SysEx-over-USB-MIDI protocol core — no_std, zero dependency"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+categories = ["no-std", "embedded", "parser-implementations"]
+keywords = ["midi", "sysex", "at-command", "embedded", "protocol"]
+
+[features]
+default = []
+std = []
+defmt = ["dep:defmt"]
+
+[dependencies]
+defmt = { version = "0.3", optional = true }
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

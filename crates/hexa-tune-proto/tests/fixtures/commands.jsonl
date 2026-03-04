@@ -1,0 +1,13 @@
+{"at":"AT+VERSION?","id":0,"name":"VERSION","op":"Query","params":[]}
+{"at":"AT+RESET=1","id":1,"name":"RESET","op":"Set","params":[]}
+{"at":"AT+FREQ=1#440#1000","id":1,"name":"FREQ","op":"Set","params":["440","1000"]}
+{"at":"AT+SETRGB=5#255#128#0","id":5,"name":"SETRGB","op":"Set","params":["255","128","0"]}
+{"at":"AT+FWUPDATE=2","id":2,"name":"FWUPDATE","op":"Set","params":[]}
+{"at":"AT+OPERATION=3#PREPARE","id":3,"name":"OPERATION","op":"Set","params":["PREPARE"]}
+{"at":"AT+OPERATION=3#GENERATE","id":3,"name":"OPERATION","op":"Set","params":["GENERATE"]}
+{"at":"AT+DONE=42","id":42,"name":"DONE","op":"Set","params":[]}
+{"at":"AT+ERROR=1#5","id":1,"name":"ERROR","op":"Set","params":["5"]}
+{"at":"AT+OPERATION=3#PREPARE#COMPLETED","id":3,"name":"OPERATION","op":"Set","params":["PREPARE","COMPLETED"]}
+{"at":"AT+OPERATION=7#GENERATING#4","id":7,"name":"OPERATION","op":"Set","params":["GENERATING","4"]}
+{"at":"AT+FREQ=10#880#2000#COMPLETED","id":10,"name":"FREQ","op":"Set","params":["880","2000","COMPLETED"]}
+{"at":"AT+VERSION=0#1.0.0","id":0,"name":"VERSION","op":"Set","params":["1.0.0"]}

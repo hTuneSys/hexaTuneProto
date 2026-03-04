@@ -1,0 +1,19 @@
+[package]
+name = "hexa-tune-proto-embedded"
+description = "hexaTune embedded adapter — typed commands, dispatch helpers, heapless wrappers"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+categories = ["no-std", "embedded"]
+keywords = ["midi", "sysex", "at-command", "embedded", "hexatune"]
+
+[features]
+default = []
+defmt = ["dep:defmt", "hexa-tune-proto/defmt"]
+
+[dependencies]
+hexa-tune-proto = { path = "../hexa-tune-proto", default-features = false }
+heapless = "0.8"
+defmt = { version = "0.3", optional = true }
