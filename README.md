@@ -121,6 +121,13 @@ The core crate uses feature flags for optional functionality:
 | `std` | — | Adds `Display` and `std::error::Error` impls |
 | `defmt` | — | Adds `defmt::Format` for embedded debug logging |
 
+## Project Files
+
+| File | Description |
+|------|-------------|
+| [AGENTS.md](AGENTS.md) | AI agent rules and project conventions |
+| [LICENSE](LICENSE) | MIT License |
+
 ## License
 
 MIT — hexaTune LLC
