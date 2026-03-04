@@ -1,0 +1,50 @@
+# hexaTuneProto — Task Runner
+# All commands delegate to scripts/ directory
+
+# Default: show available commands
+default:
+    @just --list
+
+# Setup development environment (git hooks)
+setup:
+    bash scripts/setup.sh
+
+# Build workspace (dev|release|ffi)
+build mode="dev":
+    bash scripts/build.sh {{mode}}
+
+# Run tests (all|proto|embedded|ffi)
+test scope="all":
+    bash scripts/test.sh {{scope}}
+
+# Lint: clippy + rustfmt check (all|clippy|fmt|fix)
+lint action="all":
+    bash scripts/lint.sh {{action}}
+
+# Check no_std compilation
+check-nostd:
+    bash scripts/check-nostd.sh
+
+# Generate C header via cbindgen
+gen-header:
+    bash scripts/gen-header.sh
+
+# Run full CI pipeline (lint + build + test + no_std)
+ci:
+    bash scripts/ci.sh
+
+# Clean build artifacts
+clean:
+    bash scripts/clean.sh
+
+# Build FFI for Android (debug|release)
+build-android profile="release":
+    bash scripts/build-android.sh {{profile}}
+
+# Build FFI for iOS (debug|release)
+build-ios profile="release":
+    bash scripts/build-ios.sh {{profile}}
+
+# Generate changelog from conventional commits
+changelog version="Unreleased":
+    bash scripts/changelog.sh {{version}}

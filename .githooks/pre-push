@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# pre-push hook: run CI checks before pushing
+# Runs the same pipeline as scripts/ci.sh and .github/workflows/ci.yml
+
+set -euo pipefail
+
+WORKSPACE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+cd "$WORKSPACE_ROOT"
+
+echo ""
+echo "=== Pre-push CI Check ==="
+echo ""
+
+bash scripts/ci.sh
+
+echo ""
+echo "=== Pre-push CI Check PASSED — pushing... ==="
+echo ""
