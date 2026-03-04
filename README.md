@@ -12,6 +12,7 @@ and Flutter mobile app (FFI).
 # Prerequisites: Rust toolchain, just (task runner)
 cargo install just    # if not already installed
 
+just setup            # configure git hooks (commit-msg + pre-push)
 just build            # build workspace (dev)
 just test             # run all tests
 just ci               # full CI pipeline (lint + build + test + no_std check)
@@ -77,6 +78,7 @@ All `just` commands delegate to shell scripts in `scripts/`:
 
 | Command | Description |
 |---------|-------------|
+| `just setup` | Setup dev environment (git hooks) |
 | `just build [dev\|release\|ffi]` | Build workspace or specific target |
 | `just test [all\|proto\|embedded\|ffi]` | Run tests for workspace or crate |
 | `just lint [all\|clippy\|fmt\|fix]` | Run clippy / check format / auto-fix |

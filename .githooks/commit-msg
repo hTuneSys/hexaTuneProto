@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# pre-commit hook: validate commit message format
+# Enforces conventional commit types per docs/COMMIT_STRATEGY.md
+#
+# Format: <type>(optional-scope): <short summary>
+
+set -euo pipefail
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(head -1 "$COMMIT_MSG_FILE")
+
+# Allow merge commits
+if echo "$COMMIT_MSG" | grep -qE "^Merge "; then
+    exit 0
+fi
+
+# Allowed types from COMMIT_STRATEGY.md
+TYPES="feat|fix|docs|style|refactor|perf|test|chore|ci|build|release|hotfix"
+
+# Pattern: type(optional-scope): summary
+PATTERN="^($TYPES)(\([a-z0-9_-]+\))?: .{1,72}$"
+
+if ! echo "$COMMIT_MSG" | grep -qE "$PATTERN"; then
+    echo ""
+    echo "ERROR: Commit message does not follow conventional commit format."
+    echo ""
+    echo "  Expected: <type>(scope): <summary>"
+    echo "  Got:      $COMMIT_MSG"
+    echo ""
+    echo "  Allowed types: feat, fix, docs, style, refactor, perf, test,"
+    echo "                 chore, ci, build, release, hotfix"
+    echo ""
+    echo "  Examples:"
+    echo "    feat: add streaming parser"
+    echo "    fix(at): correct ID parsing for zero"
+    echo "    docs: update FFI guide"
+    echo ""
+    echo "  See: docs/COMMIT_STRATEGY.md"
+    echo ""
+    exit 1
+fi

@@ -5,6 +5,10 @@
 default:
     @just --list
 
+# Setup development environment (git hooks)
+setup:
+    bash scripts/setup.sh
+
 # Build workspace (dev|release|ffi)
 build mode="dev":
     bash scripts/build.sh {{mode}}
