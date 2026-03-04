@@ -13,7 +13,7 @@ keywords = ["midi", "sysex", "ffi", "flutter", "hexatune"]
 crate-type = ["cdylib", "staticlib"]
 
 [dependencies]
-hexa-tune-proto = { path = "../hexa-tune-proto", features = ["std"] }
+hexa-tune-proto = { workspace = true, features = ["std"] }
 
 [build-dependencies]
 cbindgen = "0.29"
