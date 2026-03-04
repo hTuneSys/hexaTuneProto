@@ -84,6 +84,8 @@ All `just` commands delegate to shell scripts in `scripts/`:
 | `just gen-header` | Generate C header via cbindgen |
 | `just ci` | Full pipeline: lint → build → test → no_std |
 | `just clean` | Remove build artifacts |
+| `just build-android [debug\|release]` | Cross-compile FFI for Android |
+| `just build-ios [debug\|release]` | Cross-compile FFI for iOS |
 
 ## Documentation
 

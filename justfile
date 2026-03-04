@@ -32,3 +32,11 @@ ci:
 # Clean build artifacts
 clean:
     bash scripts/clean.sh
+
+# Build FFI for Android (debug|release)
+build-android profile="release":
+    bash scripts/build-android.sh {{profile}}
+
+# Build FFI for iOS (debug|release)
+build-ios profile="release":
+    bash scripts/build-ios.sh {{profile}}
