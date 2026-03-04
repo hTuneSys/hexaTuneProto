@@ -1,14 +1,17 @@
 [workspace]
 resolver = "2"
 members = [
-    "crates/hexa-tune-proto",
-    "crates/hexa-tune-proto-embedded",
-    "crates/hexa-tune-proto-ffi",
+  "crates/hexa-tune-proto",
+  "crates/hexa-tune-proto-embedded",
+  "crates/hexa-tune-proto-ffi",
 ]
 
 [workspace.package]
-version = "0.1.0"
-edition = "2021"
+version = "0.1.1"
+edition = "2024"
 license = "MIT"
 authors = ["hexaTune LLC"]
 repository = "https://github.com/hTuneSys/hexaTuneProto"
+
+[workspace.dependencies]
+hexa-tune-proto = { path = "crates/hexa-tune-proto", version = "0.1.1", default-features = false }

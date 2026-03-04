@@ -187,8 +187,9 @@ jobs:
           VERSION_BARE="${{ needs.version.outputs.version_bare }}"
           echo "Updating workspace version to ${VERSION_BARE}..."
           sed -i "s/^version = \".*\"/version = \"${VERSION_BARE}\"/" Cargo.toml
+          sed -i "s/\(hexa-tune-proto.*version = \"\)[^\"]*\"/\1${VERSION_BARE}\"/" Cargo.toml
           echo "Workspace version set to:"
-          grep '^version' Cargo.toml
+          grep -E '^version|hexa-tune-proto' Cargo.toml
 
       - name: Commit version bump
         run: |
@@ -253,25 +254,12 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Publish to crates.io
+      - name: Publish hexa-tune-proto-ffi to crates.io
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
         run: |
           # Update lock file after version bump
           cargo update --workspace
-
-          # Publish in dependency order
-          echo "Publishing hexa-tune-proto..."
-          cargo publish -p hexa-tune-proto --allow-dirty
-
-          echo "Waiting for crates.io index update..."
-          sleep 30
-
-          echo "Publishing hexa-tune-proto-embedded..."
-          cargo publish -p hexa-tune-proto-embedded --allow-dirty
-
-          echo "Waiting for crates.io index update..."
-          sleep 30
 
           echo "Publishing hexa-tune-proto-ffi..."
           cargo publish -p hexa-tune-proto-ffi --allow-dirty
