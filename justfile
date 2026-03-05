@@ -48,3 +48,15 @@ build-ios profile="release":
 # Generate changelog from conventional commits
 changelog version="Unreleased":
     bash scripts/changelog.sh {{version}}
+
+# Bump workspace version (e.g. just bump 0.1.2)
+bump version:
+    bash scripts/publish.sh bump {{version}}
+
+# Publish hexa-tune-proto to crates.io
+publish-proto:
+    bash scripts/publish.sh proto
+
+# Publish hexa-tune-proto-embedded to crates.io
+publish-embedded:
+    bash scripts/publish.sh embedded

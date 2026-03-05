@@ -20,7 +20,7 @@ use hexa_tune_proto::{at, codec, sysex, usb_midi};
 ///
 /// # Safety
 /// All pointers must be valid for their respective lengths.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_at_encode(
     name_ptr: *const u8,
     name_len: usize,
@@ -32,34 +32,36 @@ pub unsafe extern "C" fn htp_at_encode(
     out_cap: usize,
     out_len: *mut usize,
 ) -> i32 {
-    let name = core::slice::from_raw_parts(name_ptr, name_len);
-    let op = match op {
-        0 => at::AtOp::Set,
-        1 => at::AtOp::Query,
-        2 => at::AtOp::Response,
-        _ => return -1,
-    };
+    unsafe {
+        let name = core::slice::from_raw_parts(name_ptr, name_len);
+        let op = match op {
+            0 => at::AtOp::Set,
+            1 => at::AtOp::Query,
+            2 => at::AtOp::Response,
+            _ => return -1,
+        };
 
-    let param_slices: &[HtpSlice] = if params_count > 0 {
-        core::slice::from_raw_parts(params_ptr, params_count)
-    } else {
-        &[]
-    };
+        let param_slices: &[HtpSlice] = if params_count > 0 {
+            core::slice::from_raw_parts(params_ptr, params_count)
+        } else {
+            &[]
+        };
 
-    // Convert HtpSlice array to &[&[u8]] — limited to 8 params
-    let mut param_refs: [&[u8]; 8] = [&[]; 8];
-    let count = params_count.min(8);
-    for i in 0..count {
-        param_refs[i] = core::slice::from_raw_parts(param_slices[i].ptr, param_slices[i].len);
-    }
-
-    let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
-    match at::encode(name, id, op, &param_refs[..count], out) {
-        Ok(n) => {
-            *out_len = n;
-            0
+        // Convert HtpSlice array to &[&[u8]] — limited to 8 params
+        let mut param_refs: [&[u8]; 8] = [&[]; 8];
+        let count = params_count.min(8);
+        for i in 0..count {
+            param_refs[i] = core::slice::from_raw_parts(param_slices[i].ptr, param_slices[i].len);
         }
-        Err(e) => -(e.code() as i32),
+
+        let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
+        match at::encode(name, id, op, &param_refs[..count], out) {
+            Ok(n) => {
+                *out_len = n;
+                0
+            }
+            Err(e) => -(e.code() as i32),
+        }
     }
 }
 
@@ -69,39 +71,41 @@ pub unsafe extern "C" fn htp_at_encode(
 ///
 /// # Safety
 /// All pointers must be valid.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_at_parse(
     input_ptr: *const u8,
     input_len: usize,
     result: *mut HtpAtParseResult,
 ) -> i32 {
-    let input = core::slice::from_raw_parts(input_ptr, input_len);
-    match at::parse(input) {
-        Ok(msg) => {
-            let r = &mut *result;
-            r.id = msg.id;
-            r.op = match msg.op {
-                at::AtOp::Set => 0,
-                at::AtOp::Query => 1,
-                at::AtOp::Response => 2,
-            };
-            // Name offset relative to input_ptr
-            r.name_offset = msg.name.as_ptr().offset_from(input_ptr) as usize;
-            r.name_len = msg.name.len();
-            // Collect params
-            r.param_count = 0;
-            for param in msg.params {
-                if r.param_count >= 8 {
-                    break;
+    unsafe {
+        let input = core::slice::from_raw_parts(input_ptr, input_len);
+        match at::parse(input) {
+            Ok(msg) => {
+                let r = &mut *result;
+                r.id = msg.id;
+                r.op = match msg.op {
+                    at::AtOp::Set => 0,
+                    at::AtOp::Query => 1,
+                    at::AtOp::Response => 2,
+                };
+                // Name offset relative to input_ptr
+                r.name_offset = msg.name.as_ptr().offset_from(input_ptr) as usize;
+                r.name_len = msg.name.len();
+                // Collect params
+                r.param_count = 0;
+                for param in msg.params {
+                    if r.param_count >= 8 {
+                        break;
+                    }
+                    let idx = r.param_count;
+                    r.param_offsets[idx] = param.as_ptr().offset_from(input_ptr) as usize;
+                    r.param_lens[idx] = param.len();
+                    r.param_count += 1;
                 }
-                let idx = r.param_count;
-                r.param_offsets[idx] = param.as_ptr().offset_from(input_ptr) as usize;
-                r.param_lens[idx] = param.len();
-                r.param_count += 1;
+                0
             }
-            0
+            Err(e) => -(e.code() as i32),
         }
-        Err(e) => -(e.code() as i32),
     }
 }
 
@@ -109,7 +113,7 @@ pub unsafe extern "C" fn htp_at_parse(
 ///
 /// # Safety
 /// All pointers must be valid for their respective lengths.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_sysex_frame(
     payload_ptr: *const u8,
     payload_len: usize,
@@ -117,14 +121,16 @@ pub unsafe extern "C" fn htp_sysex_frame(
     out_cap: usize,
     out_len: *mut usize,
 ) -> i32 {
-    let payload = core::slice::from_raw_parts(payload_ptr, payload_len);
-    let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
-    match sysex::frame(payload, out) {
-        Ok(n) => {
-            *out_len = n;
-            0
+    unsafe {
+        let payload = core::slice::from_raw_parts(payload_ptr, payload_len);
+        let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
+        match sysex::frame(payload, out) {
+            Ok(n) => {
+                *out_len = n;
+                0
+            }
+            Err(e) => -(e.code() as i32),
         }
-        Err(e) => -(e.code() as i32),
     }
 }
 
@@ -132,21 +138,23 @@ pub unsafe extern "C" fn htp_sysex_frame(
 ///
 /// # Safety
 /// All pointers must be valid.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_sysex_unframe(
     data_ptr: *const u8,
     data_len: usize,
     out_offset: *mut usize,
     out_len: *mut usize,
 ) -> i32 {
-    let data = core::slice::from_raw_parts(data_ptr, data_len);
-    match sysex::unframe(data) {
-        Ok(payload) => {
-            *out_offset = 1; // payload starts after F0
-            *out_len = payload.len();
-            0
+    unsafe {
+        let data = core::slice::from_raw_parts(data_ptr, data_len);
+        match sysex::unframe(data) {
+            Ok(payload) => {
+                *out_offset = 1; // payload starts after F0
+                *out_len = payload.len();
+                0
+            }
+            Err(e) => -(e.code() as i32),
         }
-        Err(e) => -(e.code() as i32),
     }
 }
 
@@ -154,7 +162,7 @@ pub unsafe extern "C" fn htp_sysex_unframe(
 ///
 /// # Safety
 /// All pointers must be valid for their respective lengths.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_usb_packetize(
     sysex_ptr: *const u8,
     sysex_len: usize,
@@ -162,14 +170,16 @@ pub unsafe extern "C" fn htp_usb_packetize(
     out_cap: usize,
     out_count: *mut usize,
 ) -> i32 {
-    let sysex_data = core::slice::from_raw_parts(sysex_ptr, sysex_len);
-    let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
-    match usb_midi::packetize(sysex_data, out) {
-        Ok(n) => {
-            *out_count = n;
-            0
+    unsafe {
+        let sysex_data = core::slice::from_raw_parts(sysex_ptr, sysex_len);
+        let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
+        match usb_midi::packetize(sysex_data, out) {
+            Ok(n) => {
+                *out_count = n;
+                0
+            }
+            Err(e) => -(e.code() as i32),
         }
-        Err(e) => -(e.code() as i32),
     }
 }
 
@@ -177,7 +187,7 @@ pub unsafe extern "C" fn htp_usb_packetize(
 ///
 /// # Safety
 /// All pointers must be valid for their respective lengths.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_usb_depacketize(
     packets_ptr: *const [u8; 4],
     packet_count: usize,
@@ -185,14 +195,16 @@ pub unsafe extern "C" fn htp_usb_depacketize(
     out_cap: usize,
     out_len: *mut usize,
 ) -> i32 {
-    let packets = core::slice::from_raw_parts(packets_ptr, packet_count);
-    let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
-    match usb_midi::depacketize(packets, out) {
-        Ok(n) => {
-            *out_len = n;
-            0
+    unsafe {
+        let packets = core::slice::from_raw_parts(packets_ptr, packet_count);
+        let out = core::slice::from_raw_parts_mut(out_ptr, out_cap);
+        match usb_midi::depacketize(packets, out) {
+            Ok(n) => {
+                *out_len = n;
+                0
+            }
+            Err(e) => -(e.code() as i32),
         }
-        Err(e) => -(e.code() as i32),
     }
 }
 
@@ -200,7 +212,7 @@ pub unsafe extern "C" fn htp_usb_depacketize(
 ///
 /// # Safety
 /// All pointers must be valid for their respective lengths.
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn htp_encode_to_packets(
     name_ptr: *const u8,
     name_len: usize,
@@ -216,44 +228,46 @@ pub unsafe extern "C" fn htp_encode_to_packets(
     packets_out_cap: usize,
     packets_out_count: *mut usize,
 ) -> i32 {
-    let name = core::slice::from_raw_parts(name_ptr, name_len);
-    let op = match op {
-        0 => at::AtOp::Set,
-        1 => at::AtOp::Query,
-        2 => at::AtOp::Response,
-        _ => return -1,
-    };
+    unsafe {
+        let name = core::slice::from_raw_parts(name_ptr, name_len);
+        let op = match op {
+            0 => at::AtOp::Set,
+            1 => at::AtOp::Query,
+            2 => at::AtOp::Response,
+            _ => return -1,
+        };
 
-    let param_slices: &[HtpSlice] = if params_count > 0 {
-        core::slice::from_raw_parts(params_ptr, params_count)
-    } else {
-        &[]
-    };
+        let param_slices: &[HtpSlice] = if params_count > 0 {
+            core::slice::from_raw_parts(params_ptr, params_count)
+        } else {
+            &[]
+        };
 
-    let mut param_refs: [&[u8]; 8] = [&[]; 8];
-    let count = params_count.min(8);
-    for i in 0..count {
-        param_refs[i] = core::slice::from_raw_parts(param_slices[i].ptr, param_slices[i].len);
-    }
-
-    let at_buf = core::slice::from_raw_parts_mut(at_buf_ptr, at_buf_cap);
-    let sysex_buf = core::slice::from_raw_parts_mut(sysex_buf_ptr, sysex_buf_cap);
-    let packets_out = core::slice::from_raw_parts_mut(packets_out_ptr, packets_out_cap);
-
-    match codec::encode_to_packets(
-        name,
-        id,
-        op,
-        &param_refs[..count],
-        at_buf,
-        sysex_buf,
-        packets_out,
-    ) {
-        Ok(n) => {
-            *packets_out_count = n;
-            0
+        let mut param_refs: [&[u8]; 8] = [&[]; 8];
+        let count = params_count.min(8);
+        for i in 0..count {
+            param_refs[i] = core::slice::from_raw_parts(param_slices[i].ptr, param_slices[i].len);
         }
-        Err(e) => -(e.code() as i32),
+
+        let at_buf = core::slice::from_raw_parts_mut(at_buf_ptr, at_buf_cap);
+        let sysex_buf = core::slice::from_raw_parts_mut(sysex_buf_ptr, sysex_buf_cap);
+        let packets_out = core::slice::from_raw_parts_mut(packets_out_ptr, packets_out_cap);
+
+        match codec::encode_to_packets(
+            name,
+            id,
+            op,
+            &param_refs[..count],
+            at_buf,
+            sysex_buf,
+            packets_out,
+        ) {
+            Ok(n) => {
+                *packets_out_count = n;
+                0
+            }
+            Err(e) => -(e.code() as i32),
+        }
     }
 }
 
