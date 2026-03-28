@@ -209,6 +209,24 @@ mod tests {
     }
 
     #[test]
+    fn stream_stop_command() {
+        let payload = b"AT+OPERATION=4#STOP#IMMEDIATELY";
+        let (packets, np) = make_sysex_packets(payload);
+
+        let mut buf = [0u8; 64];
+        let mut dec = StreamDecoder::new(&mut buf);
+
+        let mut result = None;
+        for packet in packets.iter().take(np) {
+            if let Some(len) = dec.push_packet(*packet).unwrap() {
+                result = Some(len);
+            }
+        }
+        let len = result.unwrap();
+        assert_eq!(&buf[..len], payload);
+    }
+
+    #[test]
     fn stream_reuse_after_complete() {
         let payload1 = b"AT+VERSION?";
         let payload2 = b"AT+RESET=1";

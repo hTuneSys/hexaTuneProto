@@ -178,4 +178,29 @@ mod tests {
         let params: Vec<&[u8]> = msg.params.collect();
         assert_eq!(params, vec![b"5" as &[u8], b"PREPARE", b"COMPLETED"]);
     }
+
+    #[test]
+    fn full_pipeline_stop_immediately() {
+        let mut at_buf = [0u8; 64];
+        let mut sysex_buf = [0u8; 128];
+        let mut packets = [[0u8; 4]; 32];
+
+        let np = encode_to_packets(
+            b"OPERATION",
+            4,
+            AtOp::Set,
+            &[b"STOP", b"IMMEDIATELY"],
+            &mut at_buf,
+            &mut sysex_buf,
+            &mut packets,
+        )
+        .unwrap();
+
+        let mut decode_buf = [0u8; 128];
+        let msg = decode_from_packets(&packets[..np], &mut decode_buf).unwrap();
+        assert_eq!(msg.name, b"OPERATION");
+        assert_eq!(msg.id, 4);
+        let params: Vec<&[u8]> = msg.params.collect();
+        assert_eq!(params, vec![b"STOP" as &[u8], b"IMMEDIATELY"]);
+    }
 }
