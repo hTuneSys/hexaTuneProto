@@ -312,12 +312,12 @@ mod tests {
 
     #[test]
     fn parse_set_with_params() {
-        let msg = parse(b"AT+FREQ=1#440#1000").unwrap();
+        let msg = parse(b"AT+FREQ=1#440#1000#1").unwrap();
         assert_eq!(msg.name, b"FREQ");
         assert_eq!(msg.op, AtOp::Set);
         assert_eq!(msg.id, 1);
         let params: Vec<&[u8]> = msg.params.collect();
-        assert_eq!(params, vec![b"440" as &[u8], b"1000"]);
+        assert_eq!(params, vec![b"440" as &[u8], b"1000", b"1"]);
     }
 
     #[test]
@@ -355,11 +355,11 @@ mod tests {
 
     #[test]
     fn parse_completed_response() {
-        let msg = parse(b"AT+OPERATION=3#PREPARE#COMPLETED").unwrap();
+        let msg = parse(b"AT+OPERATION=3#5#PREPARE#COMPLETED").unwrap();
         assert_eq!(msg.name, b"OPERATION");
         assert_eq!(msg.id, 3);
         let params: Vec<&[u8]> = msg.params.collect();
-        assert_eq!(params, vec![b"PREPARE" as &[u8], b"COMPLETED"]);
+        assert_eq!(params, vec![b"5" as &[u8], b"PREPARE", b"COMPLETED"]);
     }
 
     #[test]
@@ -395,8 +395,8 @@ mod tests {
     #[test]
     fn encode_set_with_params() {
         let mut buf = [0u8; 64];
-        let n = encode(b"FREQ", 1, AtOp::Set, &[b"440", b"1000"], &mut buf).unwrap();
-        assert_eq!(&buf[..n], b"AT+FREQ=1#440#1000");
+        let n = encode(b"FREQ", 1, AtOp::Set, &[b"440", b"1000", b"1"], &mut buf).unwrap();
+        assert_eq!(&buf[..n], b"AT+FREQ=1#440#1000#1");
     }
 
     #[test]
@@ -418,7 +418,7 @@ mod tests {
     #[test]
     fn roundtrip_set_with_params() {
         let mut buf = [0u8; 64];
-        let params: &[&[u8]] = &[b"440", b"1000"];
+        let params: &[&[u8]] = &[b"440", b"1000", b"1"];
         let n = encode(b"FREQ", 1, AtOp::Set, params, &mut buf).unwrap();
         let msg = parse(&buf[..n]).unwrap();
         assert_eq!(msg.name, b"FREQ");

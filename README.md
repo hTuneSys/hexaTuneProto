@@ -61,7 +61,7 @@ hexaTuneProto/
 
 ```
 ┌─────────────────────────┐
-│   AT Command Layer      │  AT+FREQ=5#440#1000
+│   AT Command Layer      │  AT+FREQ=5#440#1000#1
 ├─────────────────────────┤
 │   SysEx Framing         │  F0 … payload … F7
 ├─────────────────────────┤

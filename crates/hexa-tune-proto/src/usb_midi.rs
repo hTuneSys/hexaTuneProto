@@ -198,7 +198,7 @@ mod tests {
 
     #[test]
     fn roundtrip_long_message() {
-        let payload = b"AT+FREQ=1#440#1000";
+        let payload = b"AT+FREQ=1#440#1000#1";
         let mut sysex = [0u8; 64];
         sysex[0] = SYSEX_START;
         sysex[1..1 + payload.len()].copy_from_slice(payload);

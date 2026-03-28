@@ -58,7 +58,7 @@ Pre-built Dart FFI bindings are provided in [`bindings/dart/`](bindings/dart/REA
 import 'package:hexa_tune_proto_ffi/hexa_tune_proto_ffi.dart';
 
 final proto = HexaTuneProto('libhexa_tune_proto_ffi.so');
-final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000']);
+final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000', '1']);
 final result = proto.atParse(responseBytes);
 ```
 
