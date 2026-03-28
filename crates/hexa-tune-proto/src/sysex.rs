@@ -104,4 +104,13 @@ mod tests {
         let extracted = unframe(&buf[..n]).unwrap();
         assert_eq!(extracted, payload);
     }
+
+    #[test]
+    fn roundtrip_stop() {
+        let payload = b"AT+OPERATION=5#STOP#GRACEFUL";
+        let mut buf = [0u8; 64];
+        let n = frame(payload, &mut buf).unwrap();
+        let extracted = unframe(&buf[..n]).unwrap();
+        assert_eq!(extracted, payload);
+    }
 }

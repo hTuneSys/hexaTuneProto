@@ -69,7 +69,11 @@ fn handle_command(msg: &AtMessage<'_>) {
             // Play tone (one-shot or repeating)
         }
         Ok(HexaCommand::Operation { id, sub, repeat_count }) => {
-            // Handle operation sub-command
+            match sub {
+                OperationSub::Prepare => { /* prepare with repeat_count */ }
+                OperationSub::Generate => { /* start generation */ }
+                OperationSub::Stop(mode) => { /* stop: Immediately or Graceful */ }
+            }
         }
         Ok(HexaCommand::Reset) => {
             // Reset device

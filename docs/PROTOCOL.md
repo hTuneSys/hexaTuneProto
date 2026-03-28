@@ -53,7 +53,7 @@ not contain `#`.
 | `RESET`     | Set       | —                       | Device reset           |
 | `FWUPDATE`  | Set       | —                       | Enter update mode      |
 | `FREQ`      | Set       | `frequency#duration#isOneShot` | Play frequency (Hz/ms/bool) |
-| `OPERATION` | Set       | `[repeatCount#]PREPARE` or `GENERATE` | Operation control      |
+| `OPERATION` | Set       | `[repeatCount#]PREPARE`, `GENERATE`, or `STOP#mode` | Operation control      |
 
 ## SysEx Framing
 

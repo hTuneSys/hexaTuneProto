@@ -64,7 +64,7 @@ let cmd = dispatch::resolve(&msg)?; // HexaCommand::Reset
 | `Reset`       | `AT+RESET=id`                    | —                       |
 | `FwUpdate`    | `AT+FWUPDATE=id`                 | —                       |
 | `Freq`        | `AT+FREQ=id#frequency#duration#isOneShot`  | `frequency`, `duration_ms` (u32), `is_one_shot` (bool) |
-| `Operation`   | `AT+OPERATION=id#[repeatCount#]sub`        | `sub` (OperationSub), `repeat_count` (u8) |
+| `Operation`   | `AT+OPERATION=id#[repeatCount#]sub` or `AT+OPERATION=id#STOP#mode` | `sub` (OperationSub), `repeat_count` (u8), `StopMode` |
 | `Unknown`     | anything else                    | —                       |
 
 ## Error Types

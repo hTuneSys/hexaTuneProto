@@ -54,7 +54,7 @@ pub enum HexaCommand {
         /// One-shot mode (true = play once, false = repeat)
         is_one_shot: bool,
     },
-    /// Operation command (`AT+OPERATION=id#repeatCount#PREPARE` or `AT+OPERATION=id#GENERATE`)
+    /// Operation command (`AT+OPERATION=id#repeatCount#PREPARE`, `AT+OPERATION=id#GENERATE`, or `AT+OPERATION=id#STOP#mode`)
     Operation {
         /// Command tracking ID
         id: u32,
@@ -74,6 +74,17 @@ pub enum OperationSub {
     Prepare,
     /// Start generation
     Generate,
+    /// Stop operation with specified mode
+    Stop(StopMode),
+}
+
+/// Stop mode variants for the STOP sub-command.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StopMode {
+    /// Stop immediately, discard remaining work
+    Immediately,
+    /// Stop gracefully, finish current cycle
+    Graceful,
 }
 
 impl<'a> TryFrom<&AtMessage<'a>> for HexaCommand {
@@ -123,16 +134,26 @@ impl<'a> TryFrom<&AtMessage<'a>> for HexaCommand {
             (b"OPERATION", AtOp::Set) => {
                 let mut params = msg.params.clone();
                 let first = params.next().ok_or(HexaError::MissingParam)?;
-                let (repeat_count, sub_bytes) = if first == b"PREPARE" || first == b"GENERATE" {
-                    (0u8, first)
-                } else {
-                    let rc = parse_param_u8(Some(first))?;
-                    let sub = params.next().ok_or(HexaError::MissingParam)?;
-                    (rc, sub)
-                };
+                let (repeat_count, sub_bytes) =
+                    if first == b"PREPARE" || first == b"GENERATE" || first == b"STOP" {
+                        (0u8, first)
+                    } else {
+                        let rc = parse_param_u8(Some(first))?;
+                        let sub = params.next().ok_or(HexaError::MissingParam)?;
+                        (rc, sub)
+                    };
                 let sub = match sub_bytes {
                     b"PREPARE" => OperationSub::Prepare,
                     b"GENERATE" => OperationSub::Generate,
+                    b"STOP" => {
+                        let mode_bytes = params.next().ok_or(HexaError::MissingParam)?;
+                        let mode = match mode_bytes {
+                            b"IMMEDIATELY" => StopMode::Immediately,
+                            b"GRACEFUL" => StopMode::Graceful,
+                            _ => return Err(HexaError::InvalidParam),
+                        };
+                        OperationSub::Stop(mode)
+                    }
                     _ => return Err(HexaError::InvalidParam),
                 };
                 Ok(HexaCommand::Operation {

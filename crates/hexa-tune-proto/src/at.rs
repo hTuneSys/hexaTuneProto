@@ -363,6 +363,24 @@ mod tests {
     }
 
     #[test]
+    fn parse_stop_immediately() {
+        let msg = parse(b"AT+OPERATION=4#STOP#IMMEDIATELY").unwrap();
+        assert_eq!(msg.name, b"OPERATION");
+        assert_eq!(msg.id, 4);
+        let params: Vec<&[u8]> = msg.params.collect();
+        assert_eq!(params, vec![b"STOP" as &[u8], b"IMMEDIATELY"]);
+    }
+
+    #[test]
+    fn parse_stop_graceful() {
+        let msg = parse(b"AT+OPERATION=5#STOP#GRACEFUL").unwrap();
+        assert_eq!(msg.name, b"OPERATION");
+        assert_eq!(msg.id, 5);
+        let params: Vec<&[u8]> = msg.params.collect();
+        assert_eq!(params, vec![b"STOP" as &[u8], b"GRACEFUL"]);
+    }
+
+    #[test]
     fn parse_invalid_prefix() {
         assert!(parse(b"HELLO").is_err());
     }

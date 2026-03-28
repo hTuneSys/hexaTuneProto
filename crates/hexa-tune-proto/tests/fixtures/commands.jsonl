@@ -9,5 +9,7 @@
 {"at":"AT+ERROR=1#5","id":1,"name":"ERROR","op":"Set","params":["5"]}
 {"at":"AT+OPERATION=3#5#PREPARE#COMPLETED","id":3,"name":"OPERATION","op":"Set","params":["5","PREPARE","COMPLETED"]}
 {"at":"AT+OPERATION=7#GENERATING#4","id":7,"name":"OPERATION","op":"Set","params":["GENERATING","4"]}
+{"at":"AT+OPERATION=4#STOP#IMMEDIATELY","id":4,"name":"OPERATION","op":"Set","params":["STOP","IMMEDIATELY"]}
+{"at":"AT+OPERATION=5#STOP#GRACEFUL","id":5,"name":"OPERATION","op":"Set","params":["STOP","GRACEFUL"]}
 {"at":"AT+FREQ=10#880#2000#0#COMPLETED","id":10,"name":"FREQ","op":"Set","params":["880","2000","0","COMPLETED"]}
 {"at":"AT+VERSION=0#1.0.0","id":0,"name":"VERSION","op":"Set","params":["1.0.0"]}

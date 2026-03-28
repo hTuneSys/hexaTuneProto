@@ -212,4 +212,21 @@ mod tests {
         let nb = depacketize(&packets[..np], &mut restored).unwrap();
         assert_eq!(&restored[..nb], &sysex[..sysex_len]);
     }
+
+    #[test]
+    fn roundtrip_stop_message() {
+        let payload = b"AT+OPERATION=4#STOP#IMMEDIATELY";
+        let mut sysex = [0u8; 64];
+        sysex[0] = SYSEX_START;
+        sysex[1..1 + payload.len()].copy_from_slice(payload);
+        sysex[1 + payload.len()] = SYSEX_END;
+        let sysex_len = payload.len() + 2;
+
+        let mut packets = [[0u8; 4]; 16];
+        let np = packetize(&sysex[..sysex_len], &mut packets).unwrap();
+
+        let mut restored = [0u8; 64];
+        let nb = depacketize(&packets[..np], &mut restored).unwrap();
+        assert_eq!(&restored[..nb], &sysex[..sysex_len]);
+    }
 }
