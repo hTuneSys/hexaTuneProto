@@ -23,7 +23,7 @@ final proto = HexaTuneProto('libhexa_tune_proto_ffi.so');
 final proto = HexaTuneProto.open();
 
 // Encode AT command → USB MIDI packets (full pipeline)
-final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000']);
+final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000', '1']);
 
 // Parse AT response
 final result = proto.atParse(responseBytes);

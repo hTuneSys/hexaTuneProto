@@ -10,7 +10,7 @@
 /// Usage:
 /// ```dart
 /// final proto = HexaTuneProto('libhexa_tune_proto_ffi.so');
-/// final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000']);
+/// final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000', '1']);
 /// final response = proto.parseAt(responseBytes);
 /// ```
 library hexa_tune_proto_ffi;
@@ -302,7 +302,7 @@ class HexaTuneProto {
 
   /// Encode an AT command string.
   ///
-  /// Returns the encoded bytes (e.g. `AT+FREQ=5#440#1000`).
+  /// Returns the encoded bytes (e.g. `AT+FREQ=5#440#1000#1`).
   Uint8List atEncode(
     String name, {
     int id = 0,

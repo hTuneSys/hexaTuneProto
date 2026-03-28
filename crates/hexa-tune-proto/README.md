@@ -39,7 +39,7 @@ hexa-tune-proto = { version = "0.1", features = ["std"] }
 ```rust
 use hexa_tune_proto::at;
 
-let msg = at::parse(b"AT+FREQ=5#440#1000").unwrap();
+let msg = at::parse(b"AT+FREQ=5#440#1000#1").unwrap();
 assert_eq!(msg.name, b"FREQ");
 assert_eq!(msg.id, 5);
 ```

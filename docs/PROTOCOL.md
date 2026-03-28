@@ -23,7 +23,7 @@ All commands follow the `AT+` prefix convention:
 |-----------------------------|----------------------------------|---------------------|
 | `AT+NAME?`                  | `AT+VERSION?`                    | Query               |
 | `AT+NAME=id`                | `AT+RESET=1`                     | Set (no params)     |
-| `AT+NAME=id#P1#P2…`         | `AT+FREQ=5#440#1000`             | Set with parameters |
+| `AT+NAME=id#P1#P2…`         | `AT+FREQ=5#440#1000#1`             | Set with parameters |
 
 ### Response Format
 
@@ -52,8 +52,8 @@ not contain `#`.
 | `SETRGB`    | Set       | `r#g#b`                 | Set LED color          |
 | `RESET`     | Set       | —                       | Device reset           |
 | `FWUPDATE`  | Set       | —                       | Enter update mode      |
-| `FREQ`      | Set       | `frequency#duration`    | Play frequency (Hz/ms) |
-| `OPERATION` | Set       | `PREPARE` or `GENERATE` | Operation control      |
+| `FREQ`      | Set       | `frequency#duration#isOneShot` | Play frequency (Hz/ms/bool) |
+| `OPERATION` | Set       | `[repeatCount#]PREPARE` or `GENERATE` | Operation control      |
 
 ## SysEx Framing
 

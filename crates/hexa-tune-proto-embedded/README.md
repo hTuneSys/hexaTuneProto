@@ -34,7 +34,7 @@ hexa-tune-proto-embedded = { version = "0.1", default-features = false }
 use hexa_tune_proto::at;
 use hexa_tune_proto_embedded::command::HexaCommand;
 
-let msg = at::parse(b"AT+FREQ=5#440#1000").unwrap();
+let msg = at::parse(b"AT+FREQ=5#440#1000#1").unwrap();
 match HexaCommand::try_from(&msg) {
     Ok(HexaCommand::Freq { frequency, duration_ms }) => {
         // frequency = 440, duration_ms = 1000
@@ -63,8 +63,8 @@ let cmd = dispatch::resolve(&msg)?; // HexaCommand::Reset
 | `SetRgb`      | `AT+SETRGB=id#r#g#b`            | `r`, `g`, `b` (u8)     |
 | `Reset`       | `AT+RESET=id`                    | —                       |
 | `FwUpdate`    | `AT+FWUPDATE=id`                 | —                       |
-| `Freq`        | `AT+FREQ=id#frequency#duration`  | `frequency`, `duration_ms` (u32) |
-| `Operation`   | `AT+OPERATION=id#sub`            | `sub` (OperationSub)    |
+| `Freq`        | `AT+FREQ=id#frequency#duration#isOneShot`  | `frequency`, `duration_ms` (u32), `is_one_shot` (bool) |
+| `Operation`   | `AT+OPERATION=id#[repeatCount#]sub`        | `sub` (OperationSub), `repeat_count` (u8) |
 | `Unknown`     | anything else                    | —                       |
 
 ## Error Types

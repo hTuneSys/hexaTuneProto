@@ -98,7 +98,7 @@ mod tests {
 
     #[test]
     fn roundtrip() {
-        let payload = b"AT+FREQ=1#440#1000";
+        let payload = b"AT+FREQ=1#440#1000#1";
         let mut buf = [0u8; 64];
         let n = frame(payload, &mut buf).unwrap();
         let extracted = unframe(&buf[..n]).unwrap();

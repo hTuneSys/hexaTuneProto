@@ -88,7 +88,7 @@ mod tests {
             b"FREQ",
             1,
             AtOp::Set,
-            &[b"440", b"1000"],
+            &[b"440", b"1000", b"1"],
             &mut at_buf,
             &mut sysex_buf,
             &mut packets,
@@ -101,7 +101,7 @@ mod tests {
         assert_eq!(msg.op, AtOp::Set);
         assert_eq!(msg.id, 1);
         let params: Vec<&[u8]> = msg.params.collect();
-        assert_eq!(params, vec![b"440" as &[u8], b"1000"]);
+        assert_eq!(params, vec![b"440" as &[u8], b"1000", b"1"]);
     }
 
     #[test]
@@ -164,7 +164,7 @@ mod tests {
             b"OPERATION",
             3,
             AtOp::Response,
-            &[b"PREPARE", b"COMPLETED"],
+            &[b"5", b"PREPARE", b"COMPLETED"],
             &mut at_buf,
             &mut sysex_buf,
             &mut packets,
@@ -176,6 +176,6 @@ mod tests {
         assert_eq!(msg.name, b"OPERATION");
         assert_eq!(msg.id, 3);
         let params: Vec<&[u8]> = msg.params.collect();
-        assert_eq!(params, vec![b"PREPARE" as &[u8], b"COMPLETED"]);
+        assert_eq!(params, vec![b"5" as &[u8], b"PREPARE", b"COMPLETED"]);
     }
 }

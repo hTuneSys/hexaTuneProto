@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn stream_freq_command() {
-        let payload = b"AT+FREQ=1#440#1000";
+        let payload = b"AT+FREQ=1#440#1000#1";
         let (packets, np) = make_sysex_packets(payload);
 
         let mut buf = [0u8; 64];
@@ -243,7 +243,7 @@ mod tests {
 
     #[test]
     fn stream_overflow_discards() {
-        let payload = b"AT+FREQ=1#440#1000";
+        let payload = b"AT+FREQ=1#440#1000#1";
         let (packets, np) = make_sysex_packets(payload);
 
         // Buffer too small
@@ -262,7 +262,7 @@ mod tests {
 
     #[test]
     fn stream_recovers_after_overflow() {
-        let long_payload = b"AT+FREQ=1#440#1000";
+        let long_payload = b"AT+FREQ=1#440#1000#1";
         let short_payload = b"AT+VERSION?";
 
         let (p_long, np_long) = make_sysex_packets(long_payload);

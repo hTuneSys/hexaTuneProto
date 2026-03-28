@@ -163,7 +163,7 @@ import 'package:hexa_tune_proto_ffi/hexa_tune_proto_ffi.dart';
 final proto = HexaTuneProto('libhexa_tune_proto_ffi.so');
 
 // Full pipeline: AT → SysEx → USB packets
-final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000']);
+final packets = proto.encodeToPackets('FREQ', id: 5, params: ['440', '1000', '1']);
 
 // Parse response
 final result = proto.atParse(responseBytes);

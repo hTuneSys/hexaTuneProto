@@ -43,7 +43,7 @@ pub enum HexaCommand {
         /// Command tracking ID
         id: u32,
     },
-    /// Set frequency output (`AT+FREQ=id#freq#timeMs`)
+    /// Set frequency output (`AT+FREQ=id#freq#timeMs#isOneShot`)
     Freq {
         /// Command tracking ID
         id: u32,
@@ -51,13 +51,17 @@ pub enum HexaCommand {
         freq: u32,
         /// Duration in milliseconds
         time_ms: u32,
+        /// One-shot mode (true = play once, false = repeat)
+        is_one_shot: bool,
     },
-    /// Operation command (`AT+OPERATION=id#PREPARE` or `AT+OPERATION=id#GENERATE`)
+    /// Operation command (`AT+OPERATION=id#repeatCount#PREPARE` or `AT+OPERATION=id#GENERATE`)
     Operation {
         /// Command tracking ID
         id: u32,
         /// Operation sub-command
         sub: OperationSub,
+        /// Repeat count (only used with PREPARE, defaults to 0)
+        repeat_count: u8,
     },
     /// Operation status query (`AT+OPERATION?`)
     OperationQuery,
@@ -107,22 +111,35 @@ impl<'a> TryFrom<&AtMessage<'a>> for HexaCommand {
                 let mut params = msg.params.clone();
                 let freq = parse_param_u32(params.next())?;
                 let time_ms = parse_param_u32(params.next())?;
+                let is_one_shot = parse_param_bool(params.next())?;
                 Ok(HexaCommand::Freq {
                     id: msg.id,
                     freq,
                     time_ms,
+                    is_one_shot,
                 })
             }
             (b"OPERATION", AtOp::Query) => Ok(HexaCommand::OperationQuery),
             (b"OPERATION", AtOp::Set) => {
                 let mut params = msg.params.clone();
-                let sub_bytes = params.next().ok_or(HexaError::MissingParam)?;
+                let first = params.next().ok_or(HexaError::MissingParam)?;
+                let (repeat_count, sub_bytes) = if first == b"PREPARE" || first == b"GENERATE" {
+                    (0u8, first)
+                } else {
+                    let rc = parse_param_u8(Some(first))?;
+                    let sub = params.next().ok_or(HexaError::MissingParam)?;
+                    (rc, sub)
+                };
                 let sub = match sub_bytes {
                     b"PREPARE" => OperationSub::Prepare,
                     b"GENERATE" => OperationSub::Generate,
                     _ => return Err(HexaError::InvalidParam),
                 };
-                Ok(HexaCommand::Operation { id: msg.id, sub })
+                Ok(HexaCommand::Operation {
+                    id: msg.id,
+                    sub,
+                    repeat_count,
+                })
             }
             _ => Err(HexaError::UnknownCommand),
         }
@@ -157,4 +174,13 @@ fn parse_param_u32(param: Option<&[u8]>) -> Result<u32, HexaError> {
             .ok_or(HexaError::InvalidParam)?;
     }
     Ok(val)
+}
+
+fn parse_param_bool(param: Option<&[u8]>) -> Result<bool, HexaError> {
+    let bytes = param.ok_or(HexaError::MissingParam)?;
+    match bytes {
+        b"0" => Ok(false),
+        b"1" => Ok(true),
+        _ => Err(HexaError::InvalidParam),
+    }
 }

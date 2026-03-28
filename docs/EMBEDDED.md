@@ -65,10 +65,10 @@ fn handle_command(msg: &AtMessage<'_>) {
         Ok(HexaCommand::SetRgb { r, g, b }) => {
             // Set LED color
         }
-        Ok(HexaCommand::Freq { frequency, duration_ms }) => {
-            // Play tone
+        Ok(HexaCommand::Freq { id, freq, time_ms, is_one_shot }) => {
+            // Play tone (one-shot or repeating)
         }
-        Ok(HexaCommand::Operation { sub }) => {
+        Ok(HexaCommand::Operation { id, sub, repeat_count }) => {
             // Handle operation sub-command
         }
         Ok(HexaCommand::Reset) => {
